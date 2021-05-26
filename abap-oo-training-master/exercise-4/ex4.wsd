@@ -1,0 +1,115 @@
+@startuml
+
+!define existing_class(name) class name #BDD9E5
+!define abs_existing_class(name) abstract existing_class(name)
+!define existing_interface(name) interface name #BDD9E5
+!define changing_class(name) class name #CAF7B9
+!define abs_changing_class(name) abstract changing_class(name)
+!define changing_interface(name) interface name #CAF7B9
+!define local_class(name) class name
+!define class(name) class name
+!define local_interface(name) interface name
+!define struct(name) class name <<(S, #BDD9E5) Struct>>
+!define table(name) class name <<(T, #BDD9E5) Table>>
+!define exception(name) class name <<(E, #BDD9E5) Exception>>
+!define exist_exception(name) exception(name) #BDD9E5
+!define report(name) class name <<(R, #CA5462) Report>>
+
+!define create(a,b,direction) a -direction-> b:creates
+!define implement(a,b,direction) a <|.direction. b:implements
+!define use(a,b,direction) a -direction-> b:uses
+!define extends(a,b,direction) a -direction-|> b:extends
+!define tableof(a,b,direction) a -direction-> b:table of
+!define listen(a,b,direction) a -direction-> b:listen events of
+!define raise(a,b,direction) a -direction-> b:raise events of
+!define throws(a,b,direction) a -direction-> b:throws
+
+!define create(a,b) create(a,b, )
+!define implement(a,b) implement(a,b, )
+!define use(a,b) use(a,b, )
+!define extends(a,b) extends(a,b, )
+!define tableof(a,b) tableof(a,b, )
+!define listen(a,b) listen(a,b, )
+!define composition(a,b,d) a*-d-b: composes
+!define aggregation(a,b,d) a o-d-b: aggregates
+
+title ABAP OO Training - Exercise 4
+
+abs_existing_class(LCL_WAGE_TYPE) {
+    -mv_amount : maxbt
+    -{static}mc_wage_type_ceiling : maxbt = 1000 
+    +constructor(iv_amount : maxbt)
+    +get_amount() : maxbt
+    +{abstract}is_deduction() :abap_bool
+    +{static}ty_t_wage_type : standard table of lcl_wage_type
+}
+
+existing_class(LCL_DEDUCTION_WAGE_TYPE) {
+    +is_deduction() :abap_bool
+}
+
+existing_class(LCL_EARNING_WAGE_TYPE) {
+    +is_deduction() :abap_bool
+}
+
+existing_interface(ZIF_JVC_WT_CODE_GENERATOR) {
+    +generate() : numc10
+}
+
+existing_interface(LIF_WAGE_TYPE_WRITER) {
+    +write(io_wage_type : lif_wage_type)
+}
+
+existing_interface(LIF_WAGE_TYPE_READER) {
+    +read() : ty_t_wage_type
+}
+
+existing_class(LCL_WAGE_TYPE_FACTORY) {
+    +make(iv_is_deduction : abap_bool, iv_amount : maxbt) : lcl_wage_type
+}
+
+existing_class(ZCL_JVC_WT_CODE_GENERATOR) {
+}
+
+changing_class(LCL_WAGE_TYPE_WRITER) {
+    -mo_wage_type_code_generator : zif_jvc_wt_code_generator
+    +constructor(io_wage_type_code_generator : zif_jvc_wt_code_generator)
+}
+
+existing_class(LCL_WAGE_TYPE_READER) {
+    -mo_wage_type_factory : lcl_wage_type_factory
+    +constructor(io_wage_type_factory : lcl_wage_type_factory)
+}
+
+exist_exception(LCX_WAGE_WITH_INVALID_AMOUNT) {
+}
+
+local_interface(LIF_WAGE_TYPE_EVENTS) {
+    +succesfull_write(iv_code : numc10)
+}
+
+local_interface(LIF_WAGE_TYPE_EVENTS_HANDLER) {
+    +on_sucessfull_write(iv_code : numc10)
+    +get_messages() : string_table 
+}
+
+local_class(LCL_WAGE_TYPE_EVENTS_HANDLER) {
+    +constructor()
+}
+
+
+throws(LIF_WAGE_TYPE_WRITER, LCX_WAGE_WITH_INVALID_AMOUNT, left)
+implement(ZIF_JVC_WT_CODE_GENERATOR, ZCL_JVC_WT_CODE_GENERATOR)
+implement(LIF_WAGE_TYPE_READER, LCL_WAGE_TYPE_READER)
+implement(LIF_WAGE_TYPE_WRITER, LCL_WAGE_TYPE_WRITER)
+composition(LCL_WAGE_TYPE_WRITER, ZIF_JVC_WT_CODE_GENERATOR, down)
+use(LIF_WAGE_TYPE_WRITER, LCL_WAGE_TYPE, up)
+use(LIF_WAGE_TYPE_READER, LCL_WAGE_TYPE, up)
+extends(LCL_EARNING_WAGE_TYPE, LCL_WAGE_TYPE)
+extends(LCL_DEDUCTION_WAGE_TYPE, LCL_WAGE_TYPE)
+aggregation(LCL_WAGE_TYPE_READER, LCL_WAGE_TYPE_FACTORY, down)
+implement(LIF_WAGE_TYPE_EVENTS_HANDLER,LCL_WAGE_TYPE_EVENTS_HANDLER)
+listen(LIF_WAGE_TYPE_EVENTS_HANDLER, LIF_WAGE_TYPE_EVENTS,up)
+raise(LCL_WAGE_TYPE_WRITER, LIF_WAGE_TYPE_EVENTS,left)
+
+@enduml

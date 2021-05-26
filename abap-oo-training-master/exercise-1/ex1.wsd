@@ -1,0 +1,70 @@
+@startuml
+
+!define existing_class(name) class name #BDD9E5
+!define existing_interface(name) interface name #BDD9E5
+!define changing_class(name) class name #DD8471
+!define changing_interface(name) interface name #DD8471
+!define local_class(name) class name
+!define class(name) class name
+!define local_interface(name) interface name
+!define struct(name) class name <<(S, #BDD9E5) Struct>>
+!define table(name) class name <<(T, #BDD9E5) Table>>
+!define report(name) class name <<(R, #CA5462) Report>>
+
+!define create(a,b,direction) a -direction-> b:creates
+!define implement(a,b,direction) a <|.direction. b:implements
+!define use(a,b,direction) a -direction-> b:uses
+!define extends(a,b,direction) a -direction-|> b:extends
+!define tableof(a,b,direction) a -direction-> b:table of
+!define listen(a,b,direction) a -direction-> b:listen events of
+
+!define create(a,b) create(a,b, )
+!define implement(a,b) implement(a,b, )
+!define use(a,b) use(a,b, )
+!define extends(a,b) extends(a,b, )
+!define tableof(a,b) tableof(a,b, )
+!define listen(a,b) listen(a,b, )
+!define composition(a,b,d) a*-d-b: composes
+
+title ABAP OO Training - Exercise 1
+
+local_class(LCL_WAGE_TYPE) {
+    -mv_amount : maxbt
+    -{static}mc_wage_type_ceiling : maxbt = 1000 
+    +constructor(iv_amount : maxbt)
+    +get_amount() : maxbt
+    +{static}ty_t_wage_type : standard table of lcl_wage_type
+}
+
+existing_interface(ZIF_JVC_WT_CODE_GENERATOR) {
+    +generate() : numc10
+}
+
+local_interface(LIF_WAGE_TYPE_WRITER) {
+    +write(io_wage_type : lcl_wage_type)
+}
+
+local_interface(LIF_WAGE_TYPE_READER) {
+    +read() : ty_t_wage_type
+}
+
+existing_class(ZCL_JVC_WT_CODE_GENERATOR) {
+}
+
+local_class(LCL_WAGE_TYPE_WRITER) {
+    -mo_wage_type_code_generator : zif_jvc_wt_code_generator
+    +constructor(io_wage_type_code_generator : zif_jvc_wt_code_generator)
+}
+
+local_class(LCL_WAGE_TYPE_READER) {
+}
+
+implement(ZIF_JVC_WT_CODE_GENERATOR, ZCL_JVC_WT_CODE_GENERATOR)
+implement(LIF_WAGE_TYPE_READER, LCL_WAGE_TYPE_READER)
+implement(LIF_WAGE_TYPE_WRITER, LCL_WAGE_TYPE_WRITER)
+composition(LCL_WAGE_TYPE_WRITER, ZIF_JVC_WT_CODE_GENERATOR, down)
+use(LIF_WAGE_TYPE_WRITER, LCL_WAGE_TYPE, up)
+use(LIF_WAGE_TYPE_READER, LCL_WAGE_TYPE, up)
+
+
+@enduml
